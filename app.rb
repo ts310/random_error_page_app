@@ -1,7 +1,5 @@
-require 'sinatra/base'
-require 'sinatra/reloader'
-require 'slim'
-require 'jbuilder'
+require "bundler"
+Bundler.require
 
 module Simple
   # Default application
@@ -9,7 +7,8 @@ module Simple
     get '*' do
       method = [:random_refresh,
                 :error_404,
-                :maintentance].sample(1).first
+                :maintenance,
+                :maintenance_json].sample(1).first
       send(method)
     end
 
@@ -39,9 +38,14 @@ module Simple
       slim :error_404
     end
 
-    def maintentance
+    def maintenance
       status 503
-      slim :error_503
+      slim :maintenance
+    end
+
+    def maintenance_json
+      status 503
+      jbuilder :maintenance
     end
   end
 end
