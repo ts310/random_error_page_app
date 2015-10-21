@@ -1,24 +1,33 @@
 require "bundler"
 Bundler.require
+Dotenv.load
 
 module Simple
   # Default application
   class App < Sinatra::Base
+    enable :sessions
+    set :session_secret, ENV['APP_SECRET']
+
     get '*' do
-      method = [:random_refresh,
-                :error_404,
+      ddos
+    end
+
+    private
+
+    def random_error
+      method = [:refresh,
+                :not_found,
                 :maintenance,
                 :maintenance_json].sample(1).first
       send(method)
     end
 
-    private
-
-    def random_refresh
-      if rand(1..10).even?
-        refresh
+    def ddos
+      if (count_requests % retry_limit) == 0
+        reset_requests
+        convert_to_real_response
       else
-        slim :index
+        refresh
       end
     end
 
@@ -33,9 +42,9 @@ module Simple
         'Refresh' => '0.1'
     end
 
-    def error_404
+    def not_found
       status 404
-      slim :error_404
+      slim :not_found
     end
 
     def maintenance
@@ -46,6 +55,29 @@ module Simple
     def maintenance_json
       status 503
       jbuilder :maintenance
+    end
+
+    def count_requests
+      req = session[:requests] || 0
+      req += 1
+      session[:requests] = req
+      req
+    end
+
+    def reset_requests
+      session[:requests] = 0
+    end
+
+    def retry_limit
+      ENV['APP_REFRESH_RETRY'].to_i || 5
+    end
+
+    def convert_to_real_response
+      url = request.url.gsub(/#{request.host}/, ENV['APP_DEST_HOST'])
+      response = Faraday.get(url)
+      headers \
+        'content-type' => response.headers['content-type']
+      body response.body
     end
   end
 end
