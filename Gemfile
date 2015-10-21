@@ -1,7 +1,8 @@
 source 'https://rubygems.org'
 
+ruby '2.2.1'
+
 gem 'sinatra'
-gem 'sinatra-reloader'
 gem 'shotgun'
 gem 'jbuilder'
 gem 'slim'
@@ -10,6 +11,7 @@ gem 'dotenv'
 gem 'faraday'
 
 group :development do
+  gem 'sinatra-reloader'
   gem 'foreman'
   gem 'heroku'
 end
