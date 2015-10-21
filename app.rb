@@ -1,5 +1,6 @@
-require "bundler"
+require 'bundler'
 Bundler.require
+require 'sinatra/reloader' if development?
 Dotenv.load
 
 module Simple
