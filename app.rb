@@ -10,10 +10,21 @@ module Simple
     set :session_secret, ENV['APP_SECRET']
 
     get '*' do
-      ddos
+      case error_type
+      when 'random_error'
+        random_error
+      when 'maintenance'
+        maintenance
+      when 'ddos'
+        ddos
+      end
     end
 
     private
+
+    def error_type
+      ENV['ERROR_TYPE'] || 'random_error'
+    end
 
     def random_error
       method = [:refresh,
